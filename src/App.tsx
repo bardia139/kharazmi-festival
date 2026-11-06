@@ -22,6 +22,7 @@ function App() {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [notice, setNotice] = useState<{type:'ok'|'error',text:string}|null>(null)
+  const [successScreen, setSuccessScreen] = useState(false)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
   const [studentName, setStudentName] = useState('')
@@ -109,7 +110,8 @@ function App() {
     })
     setLoading(false)
     if(error) return notify('error',error.message)
-    notify('ok',data?.message || 'ثبت‌نام با موفقیت انجام شد.')
+    setNotice(null)
+    setSuccessScreen(true)
     setStudentName('');setPhone('');setClassNumber('');setCategoryId('')
   }
 
@@ -247,6 +249,16 @@ function App() {
         </div>
       </div>}
     </main>}
+    {successScreen && <div className="success-overlay" role="dialog" aria-modal="true" aria-labelledby="success-title" dir="rtl">
+      <div className="confetti-rain" aria-hidden="true">{Array.from({length:56},(_,i)=><i key={i} style={{left:(i*37)%100+"%",animationDelay:((i%14)*0.13)+"s",animationDuration:(3.2+(i%5)*0.35)+"s",transform:"rotate("+((i*29)%180)+"deg)"}} />)}</div>
+      <div className="success-card">
+        <div className="success-check"><CheckCircle2 size={54}/></div>
+        <span className="success-kicker">جشنواره نوجوان خوارزمی</span>
+        <h2 id="success-title">ثبت‌نام با موفقیت انجام شد!</h2>
+        <p>اطلاعات شما با موفقیت ثبت شد. برای تجربه‌های تازه و درخشش استعدادت آماده باش!</p>
+        <button className="primary-btn" onClick={()=>setSuccessScreen(false)}>متوجه شدم</button>
+      </div>
+    </div>}
     <footer className="footer"><span>KHARAZMI · STUDENT FESTIVAL</span><span>سامانه مدیریت جشنواره نوجوان خوارزمی</span></footer>
 
     {editReg&&<div className="modal-backdrop"><form className="modal" onSubmit={moveRegistration}><button type="button" className="modal-close" onClick={()=>setEditReg(null)}><X/></button><span className="eyebrow">مدیریت شرکت‌کننده</span><h2>تغییر رشته دانش‌آموز</h2><p>{editReg.student_name}</p><label>رشته جدید<select value={newRegCategory} onChange={e=>setNewRegCategory(e.target.value)} required>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><button className="primary-btn">ثبت تغییرات</button></form></div>}
