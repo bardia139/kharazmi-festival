@@ -321,7 +321,7 @@ function App() {
           <div className="sidebar-bottom"><span className="admin-avatar">{(session.user.email||'A')[0].toUpperCase()}</span><div className="admin-id"><b>مدیر سامانه</b><small>{session.user.email}</small></div></div>
         </aside>
         <div className="dashboard-content">
-          <div className="dash-header"><div><span className="eyebrow">داشبورد مدیریتی</span><h1>نمای کلی جشنواره</h1><p>آمار و وضعیت ثبت‌نام دانش‌آموزان را مدیریت کنید.</p></div><div className="header-actions">{sessionRole==='owner'&&<button className="outline-btn" onClick={()=>setPage("register")}><ShieldCheck size={16}/> بازگشت به داشبورد مالک</button>}<button className="outline-btn" onClick={()=>loadAdminData()}><RefreshCw size={16}/> بروزرسانی</button><button className="outline-btn" onClick={changePassword}><KeyRound size={16}/> تغییر رمز</button></div></div>
+          <div className="dash-header"><div><span className="eyebrow">داشبورد مدیریتی</span><h1>نمای کلی جشنواره</h1><p>آمار و وضعیت ثبت‌نام دانش‌آموزان را مدیریت کنید.</p></div><div className="header-actions"><button className="outline-btn" onClick={()=>loadAdminData()}><RefreshCw size={16}/> بروزرسانی</button><button className="outline-btn" onClick={changePassword}><KeyRound size={16}/> تغییر رمز</button></div></div>
           <div className="stats-grid">
             <Stat icon={<Users/>} label="کل ثبت‌نام‌ها" value={registrations.length.toLocaleString('fa-IR')}/>
             <Stat icon={<Layers3/>} label="محورهای فعال" value={activeCount.toLocaleString('fa-IR')}/>
