@@ -51,9 +51,11 @@ function App() {
 
   async function loadPublicCategories() {
     if (!supabase) return
+    const settings = await supabase.from('site_settings').select('registrations_open').eq('singleton',true).single()
+    if (!settings.error) setGlobalOpen(settings.data.registrations_open)
     const {data,error} = await supabase.from('categories').select('*').eq('is_open',true).order('sort_order')
     if (error) notify('error','دریافت رشته‌ها ناموفق بود: '+error.message)
-    else setCategories((data||[]) as Category[])
+    else setCategories((settings.data?.registrations_open ? data : [])||[])
   }
   async function loadAdminData() {
     if (!supabase || !session) return
@@ -80,13 +82,13 @@ function App() {
     if (!session || !supabase) return
     let cancelled = false
     ;(async () => {
-      const owner = await supabase.from('owners').select('user_id').eq('user_id', session.user.id).maybeSingle()
+      const owner = await supabase.rpc('is_owner')
       if (cancelled) return
-      if (!owner.error && owner.data) {
+      if (!owner.error && owner.data === true) {
         setSessionRole('owner')
-        const settings = await supabase.from('site_settings').select('registrations_open').eq('id',1).single()
+        const settings = await supabase.from('site_settings').select('registrations_open').eq('singleton',true).single()
         if (!settings.error && settings.data) setGlobalOpen(settings.data.registrations_open)
-        await loadPublicCategories()
+        await loadAdminData()
         return
       }
       const admin = await supabase.from('admins').select('user_id').eq('user_id', session.user.id).maybeSingle()
@@ -152,7 +154,7 @@ function App() {
   async function toggleGlobalRegistration() {
     if(!supabase || sessionRole!=='owner') return
     const next=!globalOpen
-    const {error}=await supabase.from('site_settings').update({registrations_open:next}).eq('id',1)
+    const {error}=await supabase.from('site_settings').update({registrations_open:next,updated_at:new Date().toISOString(),updated_by:session.user.id}).eq('singleton',true)
     if(error) notify('error','تغییر وضعیت انجام نشد: '+error.message)
     else {setGlobalOpen(next);if(next) await loadPublicCategories();else setCategories([]);notify('ok',next?'ثبت‌نام همه رشته‌ها باز شد.':'ثبت‌نام همه رشته‌ها بسته شد.')}
   }
@@ -227,7 +229,7 @@ function App() {
       <section className="owner-console"><div className="owner-symbol">⌘</div><span className="owner-kicker">OWNER CONTROL PANEL</span><h1>پنل صاحب سایت</h1><p>کنترل مرکزی سامانه جشنواره نوجوان خوارزمی</p>
         <div className="owner-status"><span className={globalOpen?'led on':'led'}></span>{globalOpen?'ثبت‌نام سراسری فعال است':'ثبت‌نام سراسری متوقف شده است'}</div>
         <button className={globalOpen?'owner-toggle danger':'owner-toggle safe'} onClick={toggleGlobalRegistration}>{globalOpen?'توقف ثبت‌نام تمام رشته‌ها':'باز کردن ثبت‌نام تمام رشته‌ها'}</button>
-        <div className="owner-foot">دسترسی سطح مالک · فقط حساب تأییدشده صاحب سایت</div>
+        <div className="owner-metrics"><div><b>{registrations.length}</b><span>کل ثبت‌نام‌ها</span></div><div><b>{categories.length}</b><span>کل رشته‌ها</span></div><div><b>{categories.filter(c=>c.is_open).length}</b><span>رشته‌های باز</span></div></div><div className="owner-tools"><button onClick={loadAdminData}>بروزرسانی آمار</button><button onClick={exportExcel}>خروجی اکسل</button><button onClick={backup}>پشتیبان اطلاعات</button><a href="https://github.com/bardia139/kharazmi-festival" target="_blank" rel="noreferrer">مخزن GitHub</a><a href="https://supabase.com/dashboard/project/ljdpnyjftbksernrgahx" target="_blank" rel="noreferrer">پایگاه داده</a></div><div className="owner-foot">دسترسی سطح مالک · فقط حساب تأییدشده صاحب سایت</div>
       </section>
     </main> : page==='register' ? <main className="public-main">
       <section className="hero">
@@ -238,7 +240,7 @@ function App() {
       </section>
       <section className="form-card">
         <div className="section-heading"><div><span className="eyebrow">فرم شرکت در جشنواره</span><h2>اطلاعات دانش‌آموز</h2></div><div className="step-number">۰۱</div></div>
-        <form onSubmit={submitRegistration} className="registration-form">
+        <form onSubmit={submitRegistration} className="registration-form" noValidate>
           <label>نام و نام خانوادگی<input value={studentName} onChange={e=>setStudentName(e.target.value)} placeholder="مثلاً علی رضایی" maxLength={100} required/></label>
           <label>شماره موبایل والدین<input inputMode="numeric" value={phone} onChange={e=>setPhone(e.target.value.replace(/[^0-9]/g,''))} placeholder="09123456789" maxLength={11} required/></label>
           <div className="field-grid">
@@ -247,8 +249,8 @@ function App() {
           </div>
           <label>محور موردنظر<select value={categoryId} onChange={e=>setCategoryId(e.target.value)} required><option value="">یک رشته انتخاب کنید</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}{c.capacity!==null?` · ظرفیت ${c.capacity}`:''}</option>)}</select></label>
           {selectedCategory && <div className="selection-note"><CheckCircle2 size={16}/> انتخاب شما: {selectedCategory.name}</div>}
-          {categories.length===0 && <div className="empty-inline">در حال حاضر ثبت‌نام رشته‌ای فعال نیست.</div>}
-          <button className="primary-btn submit-btn" disabled={loading||!configured||categories.length===0}>{loading?'در حال ثبت…':'ثبت‌نام نهایی'} <span>←</span></button>
+          {!globalOpen ? <div className="empty-inline">ثبت‌نام جشنواره در حال حاضر توسط صاحب سایت متوقف شده است.</div> : categories.length===0 && <div className="empty-inline">در حال حاضر ثبت‌نام رشته‌ای فعال نیست.</div>}
+          <button className="primary-btn submit-btn" disabled={loading||!configured||!globalOpen||categories.length===0}>{loading?'در حال ثبت…':'ثبت‌نام نهایی'} <span>←</span></button>
           <p className="privacy-note"><LockKeyhole size={13}/> اطلاعات فقط برای امور اجرایی جشنواره استفاده می‌شود.</p>
         </form>
       </section>
