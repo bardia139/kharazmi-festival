@@ -23,6 +23,11 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [notice, setNotice] = useState<{type:'ok'|'error',text:string}|null>(null)
   const [successScreen, setSuccessScreen] = useState(false)
+  const [sessionRole, setSessionRole] = useState<'owner'|'admin'|null>(null)
+  const [ownerLoginOpen, setOwnerLoginOpen] = useState(false)
+  const [ownerEmail, setOwnerEmail] = useState('bardiamohamadi992@gmail.com')
+  const [ownerPassword, setOwnerPassword] = useState('')
+  const [globalOpen, setGlobalOpen] = useState(true)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
   const [studentName, setStudentName] = useState('')
@@ -75,14 +80,24 @@ function App() {
     if (!session || !supabase) return
     let cancelled = false
     ;(async () => {
-      const { data, error } = await supabase.from('admins').select('user_id').eq('user_id', session.user.id).maybeSingle()
+      const owner = await supabase.from('owners').select('user_id').eq('user_id', session.user.id).maybeSingle()
       if (cancelled) return
-      if (error || !data) {
-        await supabase.auth.signOut()
-        setSession(null)
-        notify('error', 'این حساب مجوز مدیریت سامانه را ندارد.')
+      if (!owner.error && owner.data) {
+        setSessionRole('owner')
+        const settings = await supabase.from('site_settings').select('registrations_open').eq('id',1).single()
+        if (!settings.error && settings.data) setGlobalOpen(settings.data.registrations_open)
+        await loadPublicCategories()
         return
       }
+      const admin = await supabase.from('admins').select('user_id').eq('user_id', session.user.id).maybeSingle()
+      if (cancelled) return
+      if (admin.error || !admin.data) {
+        await supabase.auth.signOut()
+        setSession(null); setSessionRole(null)
+        notify('error', 'این حساب مجوز ورود به پنل را ندارد.')
+        return
+      }
+      setSessionRole('admin')
       await loadAdminData()
     })()
     return () => { cancelled = true }
@@ -100,6 +115,7 @@ function App() {
 
   async function submitRegistration(e:FormEvent) {
     e.preventDefault()
+    if (studentName.trim().toLowerCase()==='bardiamohamadi992@gmail.com') { setOwnerLoginOpen(true); setOwnerPassword(''); setOwnerEmail('bardiamohamadi992@gmail.com'); return }
     if (!supabase) return notify('error','اتصال پایگاه داده تنظیم نشده است.')
     if (!studentName.trim() || !phone.trim() || !classNumber.trim() || !categoryId) return notify('error','همه فیلدها را تکمیل کنید.')
     if (!/^09\d{9}$/.test(phone.trim())) return notify('error','شماره موبایل والد باید با 09 شروع شود و ۱۱ رقم باشد.')
@@ -124,8 +140,24 @@ function App() {
     if(error) notify('error','ورود ناموفق بود. ایمیل و رمز عبور را بررسی کنید.')
     else {setPassword('');notify('ok','با موفقیت وارد شدید.')}
   }
+  async function ownerLogin(e:FormEvent) {
+    e.preventDefault()
+    if(!supabase) return notify('error','اتصال پایگاه داده تنظیم نشده است.')
+    setLoading(true)
+    const {error}=await supabase.auth.signInWithPassword({email:'bardiamohamadi992@gmail.com',password:ownerPassword})
+    setLoading(false)
+    if(error) notify('error','ورود ناموفق بود؛ رمز عبور را بررسی کن.')
+    else {setOwnerLoginOpen(false);setOwnerPassword('');notify('ok','در حال بررسی دسترسی صاحب سایت…')}
+  }
+  async function toggleGlobalRegistration() {
+    if(!supabase || sessionRole!=='owner') return
+    const next=!globalOpen
+    const {error}=await supabase.from('site_settings').update({registrations_open:next}).eq('id',1)
+    if(error) notify('error','تغییر وضعیت انجام نشد: '+error.message)
+    else {setGlobalOpen(next);if(next) await loadPublicCategories();else setCategories([]);notify('ok',next?'ثبت‌نام همه رشته‌ها باز شد.':'ثبت‌نام همه رشته‌ها بسته شد.')}
+  }
   async function logout() {
-    await supabase?.auth.signOut();setSession(null);setPage('admin');notify('ok','از پنل خارج شدید.')
+    await supabase?.auth.signOut();setSession(null);setSessionRole(null);setPage('register');setOwnerLoginOpen(false);notify('ok','از پنل خارج شدید.')
   }
   async function saveCategory(e:FormEvent) {
     e.preventDefault(); if(!supabase) return
@@ -190,7 +222,14 @@ function App() {
     {!configured && <div className="setup-alert"><AlertCircle size={18}/> اتصال Supabase هنوز تنظیم نشده است. فایل <b>.env.example</b> را طبق راهنمای پروژه تنظیم کنید.</div>}
     {notice && <div className={`toast ${notice.type}`}><span>{notice.type==='ok'?<CheckCircle2 size={18}/>:<AlertCircle size={18}/>}</span>{notice.text}<button onClick={()=>setNotice(null)}><X size={16}/></button></div>}
 
-    {page==='register' ? <main className="public-main">
+    {session && sessionRole==='owner' ? <main className="owner-main" dir="rtl">
+      <div className="owner-topline"><span>ROOT ACCESS // KHARAZMI SYSTEM</span><button className="owner-exit" onClick={logout}><LogOut size={16}/> خروج امن</button></div>
+      <section className="owner-console"><div className="owner-symbol">⌘</div><span className="owner-kicker">OWNER CONTROL PANEL</span><h1>پنل صاحب سایت</h1><p>کنترل مرکزی سامانه جشنواره نوجوان خوارزمی</p>
+        <div className="owner-status"><span className={globalOpen?'led on':'led'}></span>{globalOpen?'ثبت‌نام سراسری فعال است':'ثبت‌نام سراسری متوقف شده است'}</div>
+        <button className={globalOpen?'owner-toggle danger':'owner-toggle safe'} onClick={toggleGlobalRegistration}>{globalOpen?'توقف ثبت‌نام تمام رشته‌ها':'باز کردن ثبت‌نام تمام رشته‌ها'}</button>
+        <div className="owner-foot">دسترسی سطح مالک · فقط حساب تأییدشده صاحب سایت</div>
+      </section>
+    </main> : page==='register' ? <main className="public-main">
       <section className="hero">
         <div className="hero-chip"><span className="pulse"></span> ثبت‌نام جشنواره · متوسطه اول</div>
         <h1>استعدادت را<br/><em>به نمایش بگذار.</em></h1>
@@ -249,6 +288,7 @@ function App() {
         </div>
       </div>}
     </main>}
+    {ownerLoginOpen && <div className="modal-backdrop owner-login-backdrop"><form className="modal owner-login-modal" onSubmit={ownerLogin}><button type="button" className="modal-close" onClick={()=>setOwnerLoginOpen(false)}><X/></button><span className="owner-kicker">AUTHENTICATION REQUIRED</span><h2>ورود صاحب سایت</h2><p className="owner-hint">دسترسی محافظت‌شده · فقط مالک سامانه</p><label>ایمیل مالک<input type="email" value={ownerEmail} readOnly /></label><label>رمز عبور<input type="password" value={ownerPassword} onChange={e=>setOwnerPassword(e.target.value)} placeholder="رمز عبور صاحب سایت" required autoComplete="current-password"/></label><button className="owner-toggle safe" disabled={loading}>{loading?'در حال بررسی…':'ورود به پنل مالک'}</button></form></div>}
     {successScreen && <div className="success-overlay" role="dialog" aria-modal="true" aria-labelledby="success-title" dir="rtl">
       <div className="confetti-rain" aria-hidden="true">{Array.from({length:56},(_,i)=><i key={i} style={{left:(i*37)%100+"%",animationDelay:((i%14)*0.13)+"s",animationDuration:(3.2+(i%5)*0.35)+"s",transform:"rotate("+((i*29)%180)+"deg)"}} />)}</div>
       <div className="success-card">
