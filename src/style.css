@@ -266,3 +266,70 @@
  .dashboard .dashboard-content{padding:0;background:#fff}
  .dashboard .panel-section,.dashboard .stat-card{break-inside:avoid}
 }
+
+
+/* Unified blue-black dashboard theme, matching the public homepage */
+.dashboard .dashboard-content{background:radial-gradient(ellipse at 80% 0%,#172538 0%,#090d14 48%)!important}
+.dashboard .dash-header{border-color:#26384d!important}
+.dashboard .dash-header .eyebrow,.dashboard .panel-heading .eyebrow{color:#8eadd4!important}
+.dashboard .sidebar{background:#0d121a!important;border-color:#202a37!important}
+.dashboard .admin-avatar{background:#304762!important;color:#c8dcf5!important;border-color:#526d8e!important}
+.dashboard .admin-id b{color:#e3eaf4!important}
+.dashboard .admin-id small{color:#8795a8!important}
+.dashboard .side-label{color:#75859b!important}
+.dashboard .side-item{color:#9aa6b7!important}
+.dashboard .side-item.selected,.dashboard .side-item:hover{background:#1a2636!important;color:#dceaff!important}
+.dashboard .sidebar-bottom{border-color:#26303d!important}
+.dashboard .header-actions .outline-btn,.dashboard .table-actions .outline-btn{border-color:#303b4b!important;background:#111721!important;color:#d7e0ec!important}
+.dashboard .header-actions .outline-btn:hover,.dashboard .table-actions .outline-btn:hover{border-color:#668bb8!important;background:#1a2636!important;color:#e4efff!important}
+.dashboard .stat-card{border-color:#283444!important;background:linear-gradient(145deg,#161e2a,#111720)!important;box-shadow:0 10px 25px #00000020!important}
+.dashboard .stat-card:after{background:#8eadd40b!important}
+.dashboard .stat-icon,.dashboard .stat-card strong{color:#a9c4e7!important}
+.dashboard .stat-card span{color:#8d9aac!important}
+.dashboard .panel-section{border-color:#263241!important;background:linear-gradient(145deg,#141c27,#101620)!important}
+.dashboard .panel-heading h2,.dashboard .panel-section h2,.dashboard .panel-section h3{color:#e8eef7!important}
+.dashboard .subtle-tag{border-color:#344255!important;background:#111a26!important;color:#a9bdd8!important}
+.dashboard .category-card{border-color:#293646!important;background:#151d28!important}
+.dashboard .category-card:hover{border-color:#526d8e!important}
+.dashboard .category-top b,.dashboard .category-card b{color:#e7edf6!important}
+.dashboard .category-count strong{color:#a9c4e7!important}
+.dashboard .category-count span,.dashboard .category-count small{color:#8c99aa!important}
+.dashboard .progress{background:#2a3543!important}
+.dashboard .progress i{background:linear-gradient(90deg,#668db9,#9bbce4)!important}
+.dashboard .category-actions button,.dashboard .row-actions button{border-color:#344255!important;background:#1a2533!important;color:#c6d5e8!important}
+.dashboard .category-actions button:hover,.dashboard .row-actions button:hover{border-color:#759bc9!important;color:#e2edfc!important}
+.dashboard .editor-form{border-color:#283342!important;background:linear-gradient(145deg,#151e2a,#101721)!important}
+.dashboard .editor-form label{color:#b9c4d2!important}
+.dashboard .editor-form input,.dashboard .editor-form select,.dashboard .editor-form textarea{border-color:#2b3544!important;background:#0c1119!important;color:#edf2f8!important}
+.dashboard .editor-form input:focus,.dashboard .editor-form select:focus,.dashboard .editor-form textarea:focus{border-color:#759bc9!important;box-shadow:0 0 0 3px #759bc91c!important}
+.dashboard .editor-form input[type=file]{border-color:#526d8e!important;background:#111a26!important;color:#c7d7eb!important}
+.dashboard .editor-form input[type=checkbox]{accent-color:#8eadd4!important}
+.dashboard .primary-small{background:linear-gradient(120deg,#8eadd4,#668db9)!important;color:#0b1420!important}
+.dashboard .filters select,.dashboard .search-box{border-color:#2b3544!important;background:#0c1119!important;color:#d7e0ec!important}
+.dashboard .search-box input{color:#eef2f8!important}
+.dashboard .table-scroll{border-color:#263241!important;background:#0d131c!important}
+.dashboard table th{background:#151d28!important;color:#9db5d5!important}
+.dashboard table td{border-color:#242e3b!important;color:#b8c3d1!important}
+.dashboard tbody tr:hover{background:#182333!important}
+.dashboard td b{color:#e9eef5!important}
+.dashboard td select{border-color:#344255!important;background:#111a26!important;color:#d7e0ec!important}
+.dashboard .phone-link{color:#9dbce1!important}
+.dashboard .table-footer{color:#8290a2!important}
+.dashboard .security-note{border-color:#293b52!important;background:#111a26!important;color:#a9c1df!important}
+.dashboard .owner-tools-section#owner-advanced-tools,.dashboard #owner-advanced-tools{border-color:#293646!important;background:linear-gradient(145deg,#141c27,#101620)!important}
+.dashboard #owner-advanced-tools .owner-tools-heading{border-color:#293646!important}
+.dashboard #owner-advanced-tools .editor-form{border-color:#293646!important;background:linear-gradient(145deg,#151e2a,#101721)!important}
+.dashboard #owner-advanced-tools .editor-form input:not([type=file]):not([type=checkbox]),.dashboard #owner-advanced-tools .editor-form textarea{border-color:#2b3544!important;background:#0c1119!important;color:#edf2f8!important}
+.dashboard #owner-advanced-tools .editor-form input[type=file]{border-color:#526d8e!important;background:#111a26!important;color:#c7d7eb!important}
+.dashboard #owner-advanced-tools .editor-form button{background:linear-gradient(120deg,#8eadd4,#668db9)!important;color:#0b1420!important}
+.dashboard #owner-advanced-tools .owner-stat,.dashboard #owner-advanced-tools .owner-permission-grid,.dashboard #owner-advanced-tools .owner-control-note,.dashboard #owner-advanced-tools .category-card{border-color:#293646!important;background:#151d28!important;color:#c4d0df!important}
+.dashboard #owner-advanced-tools .owner-stat strong{color:#a9c4e7!important}
+.dashboard #owner-advanced-tools .table-scroll{border-color:#293646!important;background:#0d131c!important}
+.dashboard #owner-advanced-tools th{background:#151d28!important;color:#9db5d5!important}
+.dashboard #owner-advanced-tools td{border-color:#242e3b!important;color:#b8c3d1!important}
+.dashboard #owner-advanced-tools tbody tr:hover{background:#182333!important}
+.dashboard #owner-advanced-tools .owner-action-grid button{border-color:#344255!important;background:#1a2533!important;color:#d7e0ec!important}
+.dashboard #owner-advanced-tools .owner-action-grid button:hover{border-color:#759bc9!important}
+.dashboard .status.open{background:#1c3045!important;color:#b7d0ef!important}
+.dashboard .status.closed{background:#332326!important;color:#e5a9b0!important}
+@media(max-width:760px){.dashboard .sidebar{border-bottom-color:#263241!important}}
