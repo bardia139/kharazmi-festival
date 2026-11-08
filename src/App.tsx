@@ -247,7 +247,7 @@ function App() {
           <footer className="owner-dashboard-footer"><span><ShieldCheck size={15}/> محیط خصوصی صاحب سایت</span><span>KHARAZMI FESTIVAL <i>•</i> OWNER EDITION</span></footer>
         </div>
       </div>
-    </main> page==='register' ? <main className="public-main">
+    </main> : page==='register' ? <main className="public-main">
       <section className="hero">
         <div className="hero-chip"><span className="pulse"></span> ثبت‌نام جشنواره · متوسطه اول</div>
         <h1>استعدادت را<br/><em>به نمایش بگذار.</em></h1>
