@@ -148,7 +148,7 @@ function App() {
     const q=search.trim().toLocaleLowerCase('fa')
     const matches = !q || [r.student_name,r.parent_phone,r.class_number,r.grade].some(v=>String(v).toLocaleLowerCase('fa').includes(q))
     return matches && (filter==='all'||r.category_id===filter) && (statusFilter==='all'||((r as any).status||'pending')===statusFilter)
-  }),[registrations,search,filter])
+  }),[registrations,search,filter,statusFilter])
 
   async function submitRegistration(e:FormEvent) {
     e.preventDefault()
