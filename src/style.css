@@ -354,3 +354,37 @@
 .dashboard .security-note,.dashboard .owner-control-note{background:#111a26!important;border-color:#344a65!important;color:#b7c9df!important}
 .dashboard .owner-action-icon.excel,.dashboard .owner-action-icon.backup{background:#1a2636!important;color:#a9c4e7!important}
 .dashboard [class*="green"],.dashboard [class*="success"]{--success-color:#8eadd4!important}
+
+
+/* Absolute no-green rule for all private panels */
+.dashboard{
+ --primary:#8eadd4!important;--primary-color:#8eadd4!important;--accent:#8eadd4!important;
+ --success:#8eadd4!important;--success-color:#8eadd4!important;--green:#8eadd4!important;
+ --emerald:#8eadd4!important;--positive:#8eadd4!important;--brand:#8eadd4!important;
+}
+.dashboard [class*="green"],.dashboard [class*="success"],.dashboard [class*="emerald"],
+.dashboard [class*="positive"],.dashboard [class*="approved"],.dashboard [class*="active"]{
+ color:#b7d0ef!important;border-color:#344a65!important;
+ background-color:#1c3045!important;
+}
+.dashboard button:not(.danger):not(.delete):not(.remove),
+.dashboard .primary-btn,.dashboard .primary-button,.dashboard .submit-btn,
+.dashboard [type="submit"]{
+ background:#668db9!important;background-image:linear-gradient(120deg,#8eadd4,#557da9)!important;
+ border-color:#759bc9!important;color:#07111e!important;
+}
+.dashboard button:hover:not(.danger):not(.delete):not(.remove){filter:brightness(1.12)}
+.dashboard svg{--icon-accent:#8eadd4}
+.dashboard svg[style],.dashboard svg [style*="stroke"],.dashboard svg [style*="fill"]{stroke:#8eadd4!important}
+.dashboard svg[fill],.dashboard svg [fill]{fill:#8eadd4}
+.dashboard [style*="#00d"],.dashboard [style*="#00e"],.dashboard [style*="#38d"],
+.dashboard [style*="rgb(0, 2"],.dashboard [style*="rgb(0, 1"],.dashboard [style*="rgb(34, 197, 94)"]{
+ color:#a9c4e7!important;border-color:#344a65!important;
+ background-color:#17263a!important;
+}
+.dashboard .status,.dashboard .status *,.dashboard .toast,.dashboard .notice,
+.dashboard .alert,.dashboard .notification,.dashboard .progress,
+.dashboard progress{background-color:#17263a!important;border-color:#344a65!important;color:#c4d9f2!important}
+.dashboard .progress i,.dashboard progress::-webkit-progress-value{background:#8eadd4!important}
+.dashboard input,.dashboard select,.dashboard textarea{accent-color:#8eadd4!important}
+.dashboard a{color:#a9c4e7}
