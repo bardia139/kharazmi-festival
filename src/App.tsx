@@ -30,6 +30,8 @@ function App() {
   const [globalOpen, setGlobalOpen] = useState(true)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
+  const [statusFilter,setStatusFilter]=useState('all')
+  const [ownerAlerts,setOwnerAlerts]=useState(true)
   const [studentName, setStudentName] = useState('')
   const [phone, setPhone] = useState('')
   const [grade, setGrade] = useState('هفتم')
@@ -81,7 +83,8 @@ function App() {
     else {notify('ok','دسترسی مدیر ذخیره شد.');setManagerEmail('');loadManagers()}
   }
   async function removeManager(m:any) {
-    if(!confirm('دسترسی مدیریتی این حساب به‌طور کامل گرفته شود؟')) return
+    if(!confirm('مرحله اول: دسترسی مدیریتی این حساب گرفته شود؟')) return
+    if(!confirm('مرحله دوم: مطمئن هستید؟ این مدیر دیگر وارد پنل نخواهد شد.')) return
     const {error}=await supabase!.rpc('owner_remove_manager',{p_user_id:m.user_id})
     if(error) notify('error',error.message); else {notify('ok','دسترسی مدیر گرفته شد.');loadManagers()}
   }
@@ -144,7 +147,7 @@ function App() {
   const filtered = useMemo(() => registrations.filter(r => {
     const q=search.trim().toLocaleLowerCase('fa')
     const matches = !q || [r.student_name,r.parent_phone,r.class_number,r.grade].some(v=>String(v).toLocaleLowerCase('fa').includes(q))
-    return matches && (filter==='all'||r.category_id===filter)
+    return matches && (filter==='all'||r.category_id===filter) && (statusFilter==='all'||((r as any).status||'pending')===statusFilter)
   }),[registrations,search,filter])
 
   async function submitRegistration(e:FormEvent) {
@@ -221,7 +224,8 @@ function App() {
     else {notify('ok','رشته دانش‌آموز تغییر کرد.');setEditReg(null);loadAdminData()}
   }
   async function deleteRegistration(r:Registration) {
-    if(!confirm(`ثبت‌نام ${r.student_name} حذف شود؟`)) return
+    if(!confirm(`مرحله اول: ثبت‌نام ${r.student_name} حذف شود؟`)) return
+    if(!confirm('مرحله دوم: این عملیات قابل بازگشت مستقیم نیست. حذف را نهایی می‌کنید؟')) return
     const {error}=await supabase!.from('registrations').delete().eq('id',r.id)
     if(error) notify('error',error.message); else {notify('ok','ثبت‌نام حذف شد.');loadAdminData()}
   }
@@ -232,6 +236,7 @@ function App() {
     const {error}=await supabase!.auth.updateUser({password:next})
     if(error) notify('error',error.message); else notify('ok','رمز عبور تغییر کرد.')
   }
+  function exportCSV() { const rows=filtered.map(r=>({'نام':r.student_name,'شماره والد':r.parent_phone,'پایه':r.grade,'کلاس':r.class_number,'رشته':r.categories?.name||'','وضعیت':(r as any).status||'pending'})); const ws=XLSX.utils.json_to_sheet(rows); const csv='\\uFEFF'+XLSX.utils.sheet_to_csv(ws); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kharazmi-registrations.csv';a.click();URL.revokeObjectURL(a.href) }
   function exportExcel() {
     const rows=filtered.map(r=>({'نام و نام خانوادگی':r.student_name,'شماره والد':r.parent_phone,'پایه':r.grade,'کلاس':r.class_number,'رشته':r.categories?.name||'', 'تاریخ ثبت‌نام':new Date(r.created_at).toLocaleString('fa-IR')}))
     const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new()
@@ -303,6 +308,11 @@ function App() {
           <section className="owner-tools-section" id="tools"><div className="owner-tools-heading"><div><span className="owner-section-kicker">QUICK ACTIONS</span><h2>ابزارهای مدیریتی</h2></div><span>دسترسی سریع</span></div><div className="owner-action-grid"><button onClick={exportExcel}><span className="owner-action-icon excel"><Download size={20}/></span><b>دریافت فایل اکسل</b><small>خروجی فهرست ثبت‌نام‌ها</small><span className="owner-action-arrow">←</span></button><button onClick={backup}><span className="owner-action-icon backup"><Database size={20}/></span><b>پشتیبان اطلاعات</b><small>ذخیره نسخه پشتیبان محلی</small><span className="owner-action-arrow">←</span></button><a href="https://github.com/bardia139/kharazmi-festival" target="_blank" rel="noreferrer"><span className="owner-action-icon github">GH</span><b>کدهای پروژه</b><small>مشاهده مخزن GitHub</small><span className="owner-action-arrow">↗</span></a><a href="https://supabase.com/dashboard/project/ljdpnyjftbksernrgahx" target="_blank" rel="noreferrer"><span className="owner-action-icon database"><Settings size={20}/></span><b>پایگاه داده</b><small>ورود به مدیریت Supabase</small><span className="owner-action-arrow">↗</span></a></div></section>
           <section className="owner-tools-section" id="owner-advanced-tools">
             <div className="owner-tools-heading"><div><span className="owner-section-kicker">OWNER ONLY</span><h2>قابلیت‌های اختصاصی مالک</h2></div><span>فقط برای شما</span></div>
+            <div className="owner-stat-grid"><article className="owner-stat"><small>در انتظار بررسی</small><strong>{registrations.filter(r=>(r as any).status==='pending'||!(r as any).status).length}</strong></article><article className="owner-stat"><small>تأییدشده</small><strong>{registrations.filter(r=>(r as any).status==='approved').length}</strong></article><article className="owner-stat"><small>در حال بررسی</small><strong>{registrations.filter(r=>(r as any).status==='review').length}</strong></article><article className="owner-stat"><small>ردشده</small><strong>{registrations.filter(r=>(r as any).status==='rejected').length}</strong></article></div>
+            <div className="editor-form"><b>قالب آماده دسترسی مدیران</b><small>با انتخاب قالب، مجوزها در فرم مدیریت مدیران تنظیم می‌شود؛ ذخیره نهایی با دکمه ذخیره مدیر انجام می‌شود.</small><div className="owner-action-grid"><button type="button" onClick={()=>setManagerPerms({can_view_registrations:true,can_edit_registrations:false,can_delete_registrations:false,can_manage_categories:false,can_create_categories:false,can_edit_categories:false,can_delete_categories:false,can_manage_site_settings:false})}>فقط مشاهده</button><button type="button" onClick={()=>setManagerPerms({can_view_registrations:true,can_edit_registrations:true,can_delete_registrations:false,can_manage_categories:false,can_create_categories:false,can_edit_categories:false,can_delete_categories:false,can_manage_site_settings:false})}>اپراتور ثبت‌نام</button><button type="button" onClick={()=>setManagerPerms({can_view_registrations:true,can_edit_registrations:true,can_delete_registrations:true,can_manage_categories:true,can_create_categories:true,can_edit_categories:true,can_delete_categories:true,can_manage_site_settings:true})}>مدیر کامل</button></div></div>
+            <div className="owner-action-grid"><button onClick={exportCSV}><span className="owner-action-icon excel"><Download size={20}/></span><b>خروجی CSV</b><small>سازگار با Excel</small></button><button onClick={()=>{if(confirm('مرحله اول: بازیابی نسخه پشتیبان را ادامه می‌دهید؟'))notify('error','برای جلوگیری از بازنویسی ناخواسته، بازیابی خودکار فایل پشتیبان هنوز فعال نشده است.')}}><span className="owner-action-icon backup"><RefreshCw size={20}/></span><b>بازیابی پشتیبان</b><small>فعلاً فقط دریافت نسخه پشتیبان فعال است</small></button></div>
+            <label className="owner-permission-grid"><input type="checkbox" checked={ownerAlerts} onChange={e=>setOwnerAlerts(e.target.checked)}/> نمایش یادآوری‌های مدیریتی در داشبورد مالک</label>
+            {ownerAlerts&&<div className="owner-control-note"><AlertCircle size={15}/> {registrations.filter(r=>(r as any).status==='pending'||!(r as any).status).length.toLocaleString('fa-IR')} ثبت‌نام در انتظار بررسی است · {deletedRows.length.toLocaleString('fa-IR')} مورد حذف‌شده قابل بازیابی است.</div>}
             <div className="editor-form"><b>ورود گروهی اطلاعات از Excel</b><small>ستون‌ها: نام و نام خانوادگی، شماره والد، پایه، کلاس، رشته</small><input type="file" accept=".xlsx,.xls,.csv" onChange={importExcel} disabled={importing}/><small>{importing?'در حال ورود اطلاعات…':'فقط ردیف‌های معتبر وارد می‌شوند.'}</small></div>
             <form className="editor-form" onSubmit={createAnnouncement}><b>مدیریت اطلاعیه سایت</b><label>عنوان<input value={announcementTitle} onChange={e=>setAnnouncementTitle(e.target.value)} required/></label><label>متن<textarea rows={3} value={announcementBody} onChange={e=>setAnnouncementBody(e.target.value)} required/></label><label><input type="checkbox" checked={announcementPublished} onChange={e=>setAnnouncementPublished(e.target.checked)}/> انتشار عمومی</label><button className="primary-small">ذخیره اطلاعیه</button></form>
             <div className="category-grid">{announcements.map(a=><article className="category-card" key={a.id}><b>{a.title}</b><p>{a.body}</p><span className="status">{a.is_published?'منتشرشده':'پیش‌نویس'}</span></article>)}</div>
@@ -370,7 +380,7 @@ function App() {
             <form className="editor-form" id="category-editor" onSubmit={saveCategory}><div><span className="eyebrow">{editing?'ویرایش محور':'افزودن محور جدید'}</span><h3>{editing?'مشخصات رشته':'رشته جدید'}</h3></div><label>نام رشته<input value={catName} onChange={e=>setCatName(e.target.value)} required placeholder="عنوان محور"/></label><label>ظرفیت (خالی = نامحدود)<input type="number" min="1" value={catCapacity} onChange={e=>setCatCapacity(e.target.value)} placeholder="مثلاً ۳۰"/></label><button className="primary-small">{editing?'ذخیره تغییرات':'افزودن رشته'}</button>{editing&&<button type="button" className="outline-btn" onClick={()=>setEditing(null)}>انصراف</button>}</form>
           </section>
           <section className="panel-section" id="registrations"><div className="panel-heading"><div><span className="eyebrow">فهرست شرکت‌کنندگان</span><h2>دانش‌آموزان ثبت‌نام‌شده</h2></div><div className="table-actions"><button className="outline-btn" onClick={exportExcel}><Download size={15}/> Excel</button><button className="outline-btn" onClick={()=>window.print()}><Printer size={15}/> چاپ</button></div></div>
-            <div className="filters"><div className="search-box"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="جست‌وجوی نام، موبایل یا کلاس…"/></div><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">همه رشته‌ها</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+            <div className="filters"><div className="search-box"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="جست‌وجوی نام، موبایل یا کلاس…"/></div><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">همه رشته‌ها</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select><select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}><option value="all">همه وضعیت‌ها</option><option value="pending">در انتظار</option><option value="review">در حال بررسی</option><option value="approved">تأییدشده</option><option value="rejected">ردشده</option></select></div>
             <div className="table-scroll"><table><thead><tr><th>دانش‌آموز</th><th>پایه / کلاس</th><th>شماره والد</th><th>رشته</th><th>وضعیت</th><th>زمان ثبت‌نام</th><th>عملیات</th></tr></thead><tbody>{filtered.map(r=><tr key={r.id}><td><b>{r.student_name}</b></td><td>{r.grade} / {r.class_number}</td><td><a className="phone-link" href={`tel:${r.parent_phone}`}><Phone size={14}/>{r.parent_phone}</a></td><td>{r.categories?.name||'—'}</td><td><select value={(r as any).status||'pending'} onChange={e=>updateRegistrationStatus(r,e.target.value)}><option value="pending">در انتظار</option><option value="review">در حال بررسی</option><option value="approved">تأییدشده</option><option value="rejected">ردشده</option></select></td><td>{new Date(r.created_at).toLocaleString('fa-IR')}</td><td><div className="row-actions"><button title="تغییر رشته" onClick={()=>{setEditReg(r);setNewRegCategory(r.category_id)}}><ArrowRightLeft size={15}/></button><button title="حذف" onClick={()=>deleteRegistration(r)}><Trash2 size={15}/></button></div></td></tr>)}</tbody></table>{filtered.length===0&&<div className="empty-inline">دانش‌آموزی مطابق جست‌وجو پیدا نشد.</div>}</div>
             <div className="table-footer">نمایش {filtered.length.toLocaleString('fa-IR')} نفر از {registrations.length.toLocaleString('fa-IR')} ثبت‌نام</div>
           </section>
