@@ -247,7 +247,7 @@ function App() {
     {!configured && <div className="setup-alert"><AlertCircle size={18}/> اتصال Supabase هنوز تنظیم نشده است. فایل <b>.env.example</b> را طبق راهنمای پروژه تنظیم کنید.</div>}
     {notice && <div className={`toast ${notice.type}`}><span>{notice.type==='ok'?<CheckCircle2 size={18}/>:<AlertCircle size={18}/>}</span>{notice.text}<button onClick={()=>setNotice(null)}><X size={16}/></button></div>}
 
-    {session && sessionRole==='owner' ? <main className="owner-main" dir="rtl">
+    {session && sessionRole==='owner' && page!=='admin' ? <main className="owner-main" dir="rtl">
       <div className="owner-layout">
         <aside className="owner-sidebar">
           <div className="owner-brand"><div className="owner-brand-icon"><GraduationCap size={22}/></div><div><b>خوارزمی</b><small>فضای مدیریت مالک</small></div></div>
@@ -258,7 +258,7 @@ function App() {
           <div className="owner-sidebar-bottom"><span className="owner-avatar">B</span><div><b>صاحب سایت</b><small>دسترسی اصلی</small></div><button onClick={logout} aria-label="خروج"><LogOut size={17}/></button></div>
         </aside>
         <div className="owner-workspace">
-          <header className="owner-header"><div><span className="owner-overline">KHARAZMI / OWNER SPACE</span><h1>داشبورد اختصاصی</h1><p>همه‌چیز برای مدیریت جشنواره، یک‌جا و ساده.</p></div><div className="owner-header-actions"><span className="owner-secure"><ShieldCheck size={15}/> اتصال امن</span><button onClick={loadAdminData} className="owner-refresh"><RefreshCw size={16}/> بروزرسانی</button></div></header>
+          <header className="owner-header"><div><span className="owner-overline">KHARAZMI / OWNER SPACE</span><h1>داشبورد اختصاصی</h1><p>همه‌چیز برای مدیریت جشنواره، یک‌جا و ساده.</p></div><div className="owner-header-actions"><span className="owner-secure"><ShieldCheck size={15}/> اتصال امن</span><button onClick={()=>{setPage("admin");setMobileMenu(false)}} className="owner-refresh"><Users size={16}/> ورود به داشبورد مدیرها</button><button onClick={loadAdminData} className="owner-refresh"><RefreshCw size={16}/> بروزرسانی</button></div></header>
           <section className="owner-welcome" id="overview"><div className="owner-welcome-copy"><span className="owner-pill"><i/> پنل مالک فعال است</span><h2>سلام، خوش آمدی 👋</h2><p>وضعیت کلی جشنواره و کنترل‌های اصلی از این بخش در دسترس توست.</p></div><div className="owner-welcome-mark"><GraduationCap size={74}/></div></section>
           <section className="owner-stats">
             <article className="owner-stat"><span className="owner-stat-icon blue"><Users size={19}/></span><small>کل ثبت‌نام‌ها</small><strong>{registrations.length.toLocaleString('fa-IR')}</strong><em>شرکت‌کننده ثبت‌شده</em></article>
@@ -321,7 +321,7 @@ function App() {
           <div className="sidebar-bottom"><span className="admin-avatar">{(session.user.email||'A')[0].toUpperCase()}</span><div className="admin-id"><b>مدیر سامانه</b><small>{session.user.email}</small></div></div>
         </aside>
         <div className="dashboard-content">
-          <div className="dash-header"><div><span className="eyebrow">داشبورد مدیریتی</span><h1>نمای کلی جشنواره</h1><p>آمار و وضعیت ثبت‌نام دانش‌آموزان را مدیریت کنید.</p></div><div className="header-actions"><button className="outline-btn" onClick={()=>loadAdminData()}><RefreshCw size={16}/> بروزرسانی</button><button className="outline-btn" onClick={changePassword}><KeyRound size={16}/> تغییر رمز</button></div></div>
+          <div className="dash-header"><div><span className="eyebrow">داشبورد مدیریتی</span><h1>نمای کلی جشنواره</h1><p>آمار و وضعیت ثبت‌نام دانش‌آموزان را مدیریت کنید.</p></div><div className="header-actions">{sessionRole==='owner'&&<button className="outline-btn" onClick={()=>setPage("register")}><ShieldCheck size={16}/> بازگشت به داشبورد مالک</button>}<button className="outline-btn" onClick={()=>loadAdminData()}><RefreshCw size={16}/> بروزرسانی</button><button className="outline-btn" onClick={changePassword}><KeyRound size={16}/> تغییر رمز</button></div></div>
           <div className="stats-grid">
             <Stat icon={<Users/>} label="کل ثبت‌نام‌ها" value={registrations.length.toLocaleString('fa-IR')}/>
             <Stat icon={<Layers3/>} label="محورهای فعال" value={activeCount.toLocaleString('fa-IR')}/>
