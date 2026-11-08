@@ -45,7 +45,7 @@ function App() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const [managers, setManagers] = useState<any[]>([])
   const [managerEmail, setManagerEmail] = useState('')
-  const [managerPerms, setManagerPerms] = useState({can_view_registrations:true,can_edit_registrations:false,can_delete_registrations:false,can_manage_categories:false})
+  const [managerPerms, setManagerPerms] = useState({can_view_registrations:true,can_edit_registrations:false,can_delete_registrations:false,can_manage_categories:false,can_create_categories:false,can_edit_categories:false,can_delete_categories:false,can_manage_site_settings:false})
 
   const notify = (type:'ok'|'error', text:string) => {
     setNotice({type,text})
@@ -69,7 +69,7 @@ function App() {
   async function saveManager(e:FormEvent) {
     e.preventDefault()
     if(!supabase || sessionRole!=='owner') return
-    const {error}=await supabase.rpc('owner_set_manager',{p_email:managerEmail.trim(),p_can_view_registrations:managerPerms.can_view_registrations,p_can_edit_registrations:managerPerms.can_edit_registrations,p_can_delete_registrations:managerPerms.can_delete_registrations,p_can_manage_categories:managerPerms.can_manage_categories})
+    const {error}=await supabase.rpc('owner_set_manager_v2',{p_email:managerEmail.trim(),p_can_view_registrations:managerPerms.can_view_registrations,p_can_edit_registrations:managerPerms.can_edit_registrations,p_can_delete_registrations:managerPerms.can_delete_registrations,p_can_manage_categories:managerPerms.can_manage_categories,p_can_create_categories:managerPerms.can_create_categories,p_can_edit_categories:managerPerms.can_edit_categories,p_can_delete_categories:managerPerms.can_delete_categories,p_can_manage_site_settings:managerPerms.can_manage_site_settings})
     if(error) notify('error',error.message.includes('user_not_found')?'این ایمیل هنوز حساب کاربری ندارد؛ ابتدا باید حسابش را بسازد.':error.message)
     else {notify('ok','دسترسی مدیر ذخیره شد.');setManagerEmail('');loadManagers()}
   }
@@ -175,7 +175,9 @@ function App() {
     else {setOwnerLoginOpen(false);setOwnerPassword('');notify('ok','در حال بررسی دسترسی صاحب سایت…')}
   }
   async function toggleGlobalRegistration() {
-    if(!supabase || sessionRole!=='owner') return
+    if(!supabase) return
+    const {data:allowed}=await supabase.rpc('has_admin_permission',{p_permission:'manage_site_settings'})
+    if(!allowed) return notify('error','دسترسی تغییر وضعیت ثبت‌نام را ندارید.')
     const next=!globalOpen
     const {error}=await supabase.from('site_settings').update({registrations_open:next,updated_at:new Date().toISOString(),updated_by:session.user.id}).eq('singleton',true)
     if(error) notify('error','تغییر وضعیت انجام نشد: '+error.message)
@@ -274,12 +276,16 @@ function App() {
                 <label><input type="checkbox" checked={managerPerms.can_view_registrations} onChange={e=>setManagerPerms(p=>({...p,can_view_registrations:e.target.checked}))}/> مشاهده ثبت‌نام‌ها</label>
                 <label><input type="checkbox" checked={managerPerms.can_edit_registrations} onChange={e=>setManagerPerms(p=>({...p,can_edit_registrations:e.target.checked}))}/> ویرایش ثبت‌نام‌ها</label>
                 <label><input type="checkbox" checked={managerPerms.can_delete_registrations} onChange={e=>setManagerPerms(p=>({...p,can_delete_registrations:e.target.checked}))}/> حذف ثبت‌نام‌ها</label>
-                <label><input type="checkbox" checked={managerPerms.can_manage_categories} onChange={e=>setManagerPerms(p=>({...p,can_manage_categories:e.target.checked}))}/> مدیریت رشته‌ها</label>
+                <label><input type="checkbox" checked={managerPerms.can_manage_categories} onChange={e=>setManagerPerms(p=>({...p,can_manage_categories:e.target.checked}))}/> مدیریت کامل همه رشته‌ها (دسترسی قدیمی)</label>
+                <label><input type="checkbox" checked={managerPerms.can_create_categories} onChange={e=>setManagerPerms(p=>({...p,can_create_categories:e.target.checked}))}/> فقط افزودن رشته</label>
+                <label><input type="checkbox" checked={managerPerms.can_edit_categories} onChange={e=>setManagerPerms(p=>({...p,can_edit_categories:e.target.checked}))}/> فقط ویرایش رشته</label>
+                <label><input type="checkbox" checked={managerPerms.can_delete_categories} onChange={e=>setManagerPerms(p=>({...p,can_delete_categories:e.target.checked}))}/> فقط حذف رشته</label>
+                <label><input type="checkbox" checked={managerPerms.can_manage_site_settings} onChange={e=>setManagerPerms(p=>({...p,can_manage_site_settings:e.target.checked}))}/> باز و بسته‌کردن ثبت‌نام سراسری</label>
               </div>
               <button className="owner-master-button start" type="submit">ذخیره دسترسی مدیر <Plus size={16}/></button>
               <small>حساب باید قبلاً در سامانه ساخته شده باشد؛ سپس با ایمیلش دسترسی می‌دهی.</small>
             </form>
-            <div className="owner-manager-list">{managers.length===0?<p>هنوز مدیری تعریف نشده است.</p>:managers.map(m=><article className="owner-manager-row" key={m.user_id}><div className="owner-manager-avatar">{(m.email||'M')[0].toUpperCase()}</div><div className="owner-manager-info"><b>{m.email}</b><small>{[m.can_view_registrations&&'مشاهده',m.can_edit_registrations&&'ویرایش',m.can_delete_registrations&&'حذف',m.can_manage_categories&&'مدیریت رشته‌ها'].filter(Boolean).join(' · ')||'بدون دسترسی فعال'}</small></div><button onClick={()=>{setManagerEmail(m.email);setManagerPerms({can_view_registrations:m.can_view_registrations,can_edit_registrations:m.can_edit_registrations,can_delete_registrations:m.can_delete_registrations,can_manage_categories:m.can_manage_categories});document.getElementById('managers')?.scrollIntoView({behavior:'smooth'})}} title="ویرایش دسترسی"><Pencil size={16}/></button><button className="danger" onClick={()=>removeManager(m)} title="گرفتن دسترسی"><Trash2 size={16}/></button></article>)}</div>
+            <div className="owner-manager-list">{managers.length===0?<p>هنوز مدیری تعریف نشده است.</p>:managers.map(m=><article className="owner-manager-row" key={m.user_id}><div className="owner-manager-avatar">{(m.email||'M')[0].toUpperCase()}</div><div className="owner-manager-info"><b>{m.email}</b><small>{[m.can_view_registrations&&'مشاهده ثبت‌نام‌ها',m.can_edit_registrations&&'ویرایش ثبت‌نام‌ها',m.can_delete_registrations&&'حذف ثبت‌نام‌ها',m.can_manage_categories&&'مدیریت کامل رشته‌ها',m.can_create_categories&&'افزودن رشته',m.can_edit_categories&&'ویرایش رشته',m.can_delete_categories&&'حذف رشته',m.can_manage_site_settings&&'کنترل ثبت‌نام سراسری'].filter(Boolean).join(' · ')||'بدون دسترسی فعال'}</small></div><button onClick={()=>{setManagerEmail(m.email);setManagerPerms({can_view_registrations:m.can_view_registrations,can_edit_registrations:m.can_edit_registrations,can_delete_registrations:m.can_delete_registrations,can_manage_categories:m.can_manage_categories,can_create_categories:m.can_create_categories,can_edit_categories:m.can_edit_categories,can_delete_categories:m.can_delete_categories,can_manage_site_settings:m.can_manage_site_settings});document.getElementById('managers')?.scrollIntoView({behavior:'smooth'})}} title="ویرایش دسترسی"><Pencil size={16}/></button><button className="danger" onClick={()=>removeManager(m)} title="گرفتن دسترسی"><Trash2 size={16}/></button></article>)}</div>
           </section>
           <section className="owner-tools-section" id="tools"><div className="owner-tools-heading"><div><span className="owner-section-kicker">QUICK ACTIONS</span><h2>ابزارهای مدیریتی</h2></div><span>دسترسی سریع</span></div><div className="owner-action-grid"><button onClick={exportExcel}><span className="owner-action-icon excel"><Download size={20}/></span><b>دریافت فایل اکسل</b><small>خروجی فهرست ثبت‌نام‌ها</small><span className="owner-action-arrow">←</span></button><button onClick={backup}><span className="owner-action-icon backup"><Database size={20}/></span><b>پشتیبان اطلاعات</b><small>ذخیره نسخه پشتیبان محلی</small><span className="owner-action-arrow">←</span></button><a href="https://github.com/bardia139/kharazmi-festival" target="_blank" rel="noreferrer"><span className="owner-action-icon github">GH</span><b>کدهای پروژه</b><small>مشاهده مخزن GitHub</small><span className="owner-action-arrow">↗</span></a><a href="https://supabase.com/dashboard/project/ljdpnyjftbksernrgahx" target="_blank" rel="noreferrer"><span className="owner-action-icon database"><Settings size={20}/></span><b>پایگاه داده</b><small>ورود به مدیریت Supabase</small><span className="owner-action-arrow">↗</span></a></div></section>
           <footer className="owner-dashboard-footer"><span><ShieldCheck size={15}/> محیط خصوصی صاحب سایت</span><span>KHARAZMI FESTIVAL <i>•</i> OWNER EDITION</span></footer>
