@@ -225,13 +225,29 @@ function App() {
     {notice && <div className={`toast ${notice.type}`}><span>{notice.type==='ok'?<CheckCircle2 size={18}/>:<AlertCircle size={18}/>}</span>{notice.text}<button onClick={()=>setNotice(null)}><X size={16}/></button></div>}
 
     {session && sessionRole==='owner' ? <main className="owner-main" dir="rtl">
-      <div className="owner-topline"><span>ROOT ACCESS // KHARAZMI SYSTEM</span><button className="owner-exit" onClick={logout}><LogOut size={16}/> خروج امن</button></div>
-      <section className="owner-console"><div className="owner-symbol">⌘</div><span className="owner-kicker">OWNER CONTROL PANEL</span><h1>پنل صاحب سایت</h1><p>کنترل مرکزی سامانه جشنواره نوجوان خوارزمی</p>
-        <div className="owner-status"><span className={globalOpen?'led on':'led'}></span>{globalOpen?'ثبت‌نام سراسری فعال است':'ثبت‌نام سراسری متوقف شده است'}</div>
-        <button className={globalOpen?'owner-toggle danger':'owner-toggle safe'} onClick={toggleGlobalRegistration}>{globalOpen?'توقف ثبت‌نام تمام رشته‌ها':'باز کردن ثبت‌نام تمام رشته‌ها'}</button>
-        <div className="owner-metrics"><div><b>{registrations.length}</b><span>کل ثبت‌نام‌ها</span></div><div><b>{categories.length}</b><span>کل رشته‌ها</span></div><div><b>{categories.filter(c=>c.is_open).length}</b><span>رشته‌های باز</span></div></div><div className="owner-tools"><button onClick={loadAdminData}>بروزرسانی آمار</button><button onClick={exportExcel}>خروجی اکسل</button><button onClick={backup}>پشتیبان اطلاعات</button><a href="https://github.com/bardia139/kharazmi-festival" target="_blank" rel="noreferrer">مخزن GitHub</a><a href="https://supabase.com/dashboard/project/ljdpnyjftbksernrgahx" target="_blank" rel="noreferrer">پایگاه داده</a></div><div className="owner-foot">دسترسی سطح مالک · فقط حساب تأییدشده صاحب سایت</div>
-      </section>
-    </main> : page==='register' ? <main className="public-main">
+      <div className="owner-layout">
+        <aside className="owner-sidebar">
+          <div className="owner-brand"><div className="owner-brand-icon"><GraduationCap size={22}/></div><div><b>خوارزمی</b><small>فضای مدیریت مالک</small></div></div>
+          <div className="owner-side-label">فضای اختصاصی</div>
+          <a className="owner-nav active" href="#overview"><ChartNoAxesColumn size={17}/> نمای کلی</a>
+          <a className="owner-nav" href="#controls"><Settings size={17}/> کنترل سامانه</a>
+          <a className="owner-nav" href="#tools"><Database size={17}/> ابزارها و داده‌ها</a>
+          <div className="owner-sidebar-bottom"><span className="owner-avatar">B</span><div><b>صاحب سایت</b><small>دسترسی اصلی</small></div><button onClick={logout} aria-label="خروج"><LogOut size={17}/></button></div>
+        </aside>
+        <div className="owner-workspace">
+          <header className="owner-header"><div><span className="owner-overline">KHARAZMI / OWNER SPACE</span><h1>داشبورد اختصاصی</h1><p>همه‌چیز برای مدیریت جشنواره، یک‌جا و ساده.</p></div><div className="owner-header-actions"><span className="owner-secure"><ShieldCheck size={15}/> اتصال امن</span><button onClick={loadAdminData} className="owner-refresh"><RefreshCw size={16}/> بروزرسانی</button></div></header>
+          <section className="owner-welcome" id="overview"><div className="owner-welcome-copy"><span className="owner-pill"><i/> پنل مالک فعال است</span><h2>سلام، خوش آمدی 👋</h2><p>وضعیت کلی جشنواره و کنترل‌های اصلی از این بخش در دسترس توست.</p></div><div className="owner-welcome-mark"><GraduationCap size={74}/></div></section>
+          <section className="owner-stats">
+            <article className="owner-stat"><span className="owner-stat-icon blue"><Users size={19}/></span><small>کل ثبت‌نام‌ها</small><strong>{registrations.length.toLocaleString('fa-IR')}</strong><em>شرکت‌کننده ثبت‌شده</em></article>
+            <article className="owner-stat"><span className="owner-stat-icon violet"><Layers3 size={19}/></span><small>تعداد محورهای جشنواره</small><strong>{categories.length.toLocaleString('fa-IR')}</strong><em>محور تعریف‌شده</em></article>
+            <article className="owner-stat"><span className="owner-stat-icon green"><CheckCircle2 size={19}/></span><small>محورهای فعال</small><strong>{categories.filter(c=>c.is_open).length.toLocaleString('fa-IR')}</strong><em>آماده دریافت ثبت‌نام</em></article>
+          </section>
+          <section className="owner-control-card" id="controls"><div className="owner-control-top"><div><span className="owner-section-kicker">REGISTRATION CONTROL</span><h2>کنترل ثبت‌نام سراسری</h2><p>با این کلید، ثبت‌نام همه محورهای جشنواره را هم‌زمان مدیریت کن.</p></div><span className={globalOpen?'owner-state-badge live':'owner-state-badge paused'}><i/>{globalOpen?'در حال دریافت ثبت‌نام':'ثبت‌نام متوقف است'}</span></div><div className="owner-control-bottom"><div className="owner-control-explain"><span className={globalOpen?'owner-big-indicator live':'owner-big-indicator paused'}><i/></span><div><b>{globalOpen?'سامانه برای دانش‌آموزان باز است':'سامانه فعلاً بسته است'}</b><small>{globalOpen?'فرم ثبت‌نام در دسترس دانش‌آموزان قرار دارد.':'هیچ ثبت‌نام تازه‌ای پذیرفته نمی‌شود؛ اطلاعات قبلی محفوظ است.'}</small></div></div><button className={globalOpen?'owner-master-button stop':'owner-master-button start'} onClick={toggleGlobalRegistration}>{globalOpen?'توقف ثبت‌نام':'فعال‌سازی ثبت‌نام'} <span>{globalOpen?'Ⅱ':'▶'}</span></button></div><div className="owner-control-note"><LockKeyhole size={14}/> این تغییر فقط با دسترسی صاحب سایت امکان‌پذیر است و روی اطلاعات قبلی اثری ندارد.</div></section>
+          <section className="owner-tools-section" id="tools"><div className="owner-tools-heading"><div><span className="owner-section-kicker">QUICK ACTIONS</span><h2>ابزارهای مدیریتی</h2></div><span>دسترسی سریع</span></div><div className="owner-action-grid"><button onClick={exportExcel}><span className="owner-action-icon excel"><Download size={20}/></span><b>دریافت فایل اکسل</b><small>خروجی فهرست ثبت‌نام‌ها</small><span className="owner-action-arrow">←</span></button><button onClick={backup}><span className="owner-action-icon backup"><Database size={20}/></span><b>پشتیبان اطلاعات</b><small>ذخیره نسخه پشتیبان محلی</small><span className="owner-action-arrow">←</span></button><a href="https://github.com/bardia139/kharazmi-festival" target="_blank" rel="noreferrer"><span className="owner-action-icon github">GH</span><b>کدهای پروژه</b><small>مشاهده مخزن GitHub</small><span className="owner-action-arrow">↗</span></a><a href="https://supabase.com/dashboard/project/ljdpnyjftbksernrgahx" target="_blank" rel="noreferrer"><span className="owner-action-icon database"><Settings size={20}/></span><b>پایگاه داده</b><small>ورود به مدیریت Supabase</small><span className="owner-action-arrow">↗</span></a></div></section>
+          <footer className="owner-dashboard-footer"><span><ShieldCheck size={15}/> محیط خصوصی صاحب سایت</span><span>KHARAZMI FESTIVAL <i>•</i> OWNER EDITION</span></footer>
+        </div>
+      </div>
+    </main> page==='register' ? <main className="public-main">
       <section className="hero">
         <div className="hero-chip"><span className="pulse"></span> ثبت‌نام جشنواره · متوسطه اول</div>
         <h1>استعدادت را<br/><em>به نمایش بگذار.</em></h1>
