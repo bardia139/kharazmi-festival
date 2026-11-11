@@ -388,3 +388,6 @@
 .dashboard .progress i,.dashboard progress::-webkit-progress-value{background:#8eadd4!important}
 .dashboard input,.dashboard select,.dashboard textarea{accent-color:#8eadd4!important}
 .dashboard a{color:#a9c4e7}
+
+
+.footer{align-items:center;gap:18px;flex-wrap:wrap}.footer-signature{display:flex;align-items:center;gap:10px;margin-right:auto}.footer-signature img{display:block;width:118px;height:auto;max-height:38px;object-fit:contain}.footer-signature small{color:#cdae70;font-size:10px;white-space:nowrap}@media(max-width:600px){.footer{justify-content:center;text-align:center}.footer-signature{width:100%;justify-content:center;margin:4px 0 0}.footer-signature img{width:105px}}
