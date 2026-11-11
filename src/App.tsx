@@ -399,7 +399,7 @@ function App() {
         <button className="primary-btn" onClick={()=>setSuccessScreen(false)}>متوجه شدم</button>
       </div>
     </div>}
-    <footer className="footer"><span>KHARAZMI · STUDENT FESTIVAL</span><span>سامانه مدیریت جشنواره نوجوان خوارزمی</span></footer>
+    <footer className="footer"><span>KHARAZMI · STUDENT FESTIVAL</span><span>سامانه مدیریت جشنواره نوجوان خوارزمی</span><div className="footer-signature"><img src="./signature.svg" alt="امضای بردیا" /><small>طراحی و توسعه: بردیا</small></div></footer>
 
     {editReg&&<div className="modal-backdrop"><form className="modal" onSubmit={moveRegistration}><button type="button" className="modal-close" onClick={()=>setEditReg(null)}><X/></button><span className="eyebrow">مدیریت شرکت‌کننده</span><h2>تغییر رشته دانش‌آموز</h2><p>{editReg.student_name}</p><label>رشته جدید<select value={newRegCategory} onChange={e=>setNewRegCategory(e.target.value)} required>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><button className="primary-btn">ثبت تغییرات</button></form></div>}
   </div>
